@@ -7,26 +7,34 @@ class GameException(Exception):
 
 class Game:
 
-    def __init__(self):
-        self.player_roles = {}
-        self.dead_players = set()
-        self.current_activity = 'waiting'
-        self.started = False
-        self.finished = False
-        self._activity_order = (
-            'wolves',
-            'vote',
-        )
-        self._activity_index = 0
-        self._activity_actions = {
-            'vote': self._action_vote,
-            'wolves': self._action_wolves,
-        }
-        self._activity_info = {
-            'vote': self._info_vote,
-            'wolves': self._info_wolves,
-        }
-        self._activity_state = {}
+    def __init__(self, serialized_data: dict = None):
+        if serialized_data is None:
+            self.player_roles = {}
+            self.dead_players = set()
+            self.current_activity = 'waiting'
+            self.started = False
+            self.finished = False
+            self._activity_order = (
+                'wolves',
+                'vote',
+            )
+            self._activity_index = 0
+            self._activity_actions = {
+                'vote': self._action_vote,
+                'wolves': self._action_wolves,
+            }
+            self._activity_info = {
+                'vote': self._info_vote,
+                'wolves': self._info_wolves,
+            }
+            self._activity_state = {}
+        else:
+            self.player_roles = serialized_data['players']
+            self.dead_players = serialized_data['dead']
+            self.current_activity = serialized_data['activity']
+            self.started = self.current_activity != 'waiting'
+            self.finished = self.current_activity == 'finished'
+            self._activity_state = serialized_data['state']
 
 
     def add_player(self, name: str):
@@ -58,6 +66,21 @@ class Game:
         if activity not in self._activity_actions:
             raise GameException(f'Activity {activity} does not exist')
         return self._activity_info[activity](player)
+
+
+    def serialize(self):
+        if self.finished:
+            activity = 'finished'
+        elif not self.started:
+            activity = 'waiting'
+        else:
+            activity = self.current_activity
+        return {
+                'players': self.player_roles,
+                'dead': self.dead_players,
+                'activity': activity,
+                'state': self._activity_state,
+            }
 
 
     def _next_activity(self):
