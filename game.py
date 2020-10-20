@@ -13,7 +13,6 @@ class Game:
             'wolves',
             'vote',
         )
-        self._activity_index = 0
         self._activity_actions = {
             'vote': self._action_vote,
             'wolves': self._action_wolves,
@@ -37,6 +36,10 @@ class Game:
             self.started = self.current_activity != 'waiting'
             self.finished = self.current_activity == 'finished'
             self._activity_state = data['state']
+            if self.finished == self.started:
+                self._activity_index = -1
+            else:
+                self._activity_index = self._activity_order.index(self.current_activity)
 
 
     def add_player(self, name: str):
