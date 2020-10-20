@@ -112,9 +112,9 @@ class Game:
         self._check_alive(user)
 
         state = self._activity_state
-        state.setdefault('voted_for', {})
-        if state['voted_for'].get(player) == user:
-            state['votes'][user] -= 1
+        voted_for = state.setdefault('voted_for', {}).get(player)
+        if voted_for is not None:
+            state['votes'][voted_for] -= 1
         state['voted_for'][player] = user
         state.setdefault('votes', {}).setdefault(user, 0)
         state['votes'][user] += 1
@@ -137,9 +137,9 @@ class Game:
         self._check_alive(user)
 
         state = self._activity_state
-        state.setdefault('voted_for', {})
-        if state['voted_for'].get(player) == user:
-            state['votes'][user] -= 1
+        voted_for = state.setdefault('voted_for', {}).get(player)
+        if voted_for is not None:
+            state['votes'][voted_for] -= 1
         state['voted_for'][player] = user
         state.setdefault('votes', {}).setdefault(user, 0)
         state['votes'][user] += 1
