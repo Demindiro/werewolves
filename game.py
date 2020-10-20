@@ -1,4 +1,5 @@
 import random
+import json
 
 
 class GameException(Exception):
@@ -8,33 +9,34 @@ class GameException(Exception):
 class Game:
 
     def __init__(self, serialized_data: dict = None):
+        self._activity_order = (
+            'wolves',
+            'vote',
+        )
+        self._activity_index = 0
+        self._activity_actions = {
+            'vote': self._action_vote,
+            'wolves': self._action_wolves,
+        }
+        self._activity_info = {
+            'vote': self._info_vote,
+            'wolves': self._info_wolves,
+        }
         if serialized_data is None:
             self.player_roles = {}
             self.dead_players = set()
             self.current_activity = 'waiting'
             self.started = False
             self.finished = False
-            self._activity_order = (
-                'wolves',
-                'vote',
-            )
-            self._activity_index = 0
-            self._activity_actions = {
-                'vote': self._action_vote,
-                'wolves': self._action_wolves,
-            }
-            self._activity_info = {
-                'vote': self._info_vote,
-                'wolves': self._info_wolves,
-            }
             self._activity_state = {}
         else:
-            self.player_roles = serialized_data['players']
-            self.dead_players = serialized_data['dead']
-            self.current_activity = serialized_data['activity']
+            data = json.loads(serialized_data)
+            self.player_roles = data['players']
+            self.dead_players = set(data['dead'])
+            self.current_activity = data['activity']
             self.started = self.current_activity != 'waiting'
             self.finished = self.current_activity == 'finished'
-            self._activity_state = serialized_data['state']
+            self._activity_state = data['state']
 
 
     def add_player(self, name: str):
@@ -75,12 +77,12 @@ class Game:
             activity = 'waiting'
         else:
             activity = self.current_activity
-        return {
+        return json.dumps({
                 'players': self.player_roles,
-                'dead': self.dead_players,
+                'dead': list(self.dead_players),
                 'activity': activity,
                 'state': self._activity_state,
-            }
+            })
 
 
     def _next_activity(self):
@@ -154,7 +156,7 @@ class Game:
         self._check_activity('vote')
         state = self._activity_state
         return {
-                'vote': state['voted_for'].get(player),
+                'vote': state.get('voted_for', {}).get(player),
                 'vote_count': state.get('votes', {}),
                 'options': [] if player in self.dead_players else
                         [p for p in self.player_roles if p not in self.dead_players]
