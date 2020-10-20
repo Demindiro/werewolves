@@ -1,8 +1,222 @@
 {% extends 'base.html' %}
 {% block body %}
 	{{ super() }}
-	<input type="text" name="code" placeholder="{{ gettext('Code') }}" />
-	<input type="button" name="Submit" value="{{ gettext('Join game') }}" />
-	<br>
-	<a href="{{ url_for('create_game') }}">{{ gettext('Create game') }}</a>
+	<p id="error" style="display:none"></p>
+	<div id="index" style="display:none">
+		<input class="code" type="text" placeholder="{{ gettext('Code') }}" />
+		<input type="button" onclick="showGame()" value="{{ gettext('View game') }}" />
+		<br />
+		<input class="name" type="text" placeholder="{{ gettext('Username') }}" />
+		<input type="button" onclick="createGame()" value="{{ gettext('Create game') }}" />
+	</div>
+	<div id="game" style="display:none">
+		<h2 class="code"></h2>
+		<p id="game-players"></p>
+		<input id="game-start" type="button" onclick="startGame()" value="{{ gettext('Start game') }}" />
+	</div>
+	<script>
+		function showError(text) {
+			let elem = document.getElementById("error")
+			elem.textContent = text
+			elem.style["display"] = "block"
+		}
+
+
+		function getField(id, className) {
+			return document
+				.getElementById(id)
+				.getElementsByClassName(className)[0]
+		}
+
+
+		function setVisible(id, visible) {
+			document.getElementById(id).style["display"] = visible ? "block" : "none"
+		}
+
+
+		function requestGet(url, callback) {
+			let req = new XMLHttpRequest()
+			req.addEventListener("load", callback)
+			req.open("get", url)
+			req.send()
+		}
+
+
+		function requestPost(url, data, callback) {
+			let req = new XMLHttpRequest()
+			req.addEventListener("load", callback)
+			req.open("post", url)
+			req.send(new URLSearchParams(data))
+		}
+
+
+		function getGameCode() {
+			let segments = window.location.pathname.split("/")
+			return segments.pop() || segments.pop()
+		}
+
+
+		function showGame() {
+			let elem = getField("index", "code")
+			let code = elem.value.toLowerCase()
+			if (code.length != 6) {
+				showError("Code must be exactly 6 characters long");
+				return
+			}
+			for (let i = 0; i < code.length; i++) {
+				if (code[i] < 'a' || 'z' < code[i]) {
+					showError("Code must consist only of the characters between A-Z")
+					return
+				}
+			}
+			request("get", "{{ url_for('api.get_game_info', code='__code') }}"
+					.replace("__code", code), showRequestHandler(code))
+		}
+
+
+		function createGame() {
+			let data = { name: getField("index", "name").value }
+			requestPost("{{ url_for('api.create_game') }}", data, function(e) {
+				let code = JSON.parse(e.target.response)["code"]
+				history.pushState(null, "", "/" + code + "/")
+				setVisible("index", false)
+				setVisible("game", true)
+			})
+		}
+
+
+		function showRequestHandler(code) {
+			return function(e) {
+				if (this.status > 0) {
+
+				} else {
+					showError("Failed to show game")
+				}
+			}
+		}
+
+
+		function startGame() {
+			let url = "{{ url_for('api.start_game', code='__code') }}"
+					.replace("__code", getGameCode())
+			requestPost(url, function(e) {
+				getGameInfo()
+			})
+		}
+
+
+		function getGameInfo() {
+			let code = getGameCode()
+			let url = "{{ url_for('api.get_game_info', code='__code') }}".replace("__code", code)
+			getField("game", "code").textContent = "{{ gettext('Code') }}: " + code
+			requestGet(url, function(e) {
+				let info = JSON.parse(e.target.response)
+				let activity = info["activity"]
+				let players = info["players"] || []
+				setVisible("game-players", false)
+				setVisible("game-start", false)
+				switch (activity) {
+					case "waiting":
+						document.getElementById("title").textContent = "Waiting for players"
+						setVisible("game-players", true)
+						setVisible("game-start", true)
+						let text = ""
+						for (let i = 0; i < players.length; i++) {
+							text += players[i] + ", "
+						}
+						document.getElementById("game-players").textContent = text
+						break
+					case "wolves":
+						document.getElementById("title").textContent = "The wolves awaken..."
+						setVisible("game-players", true)
+						getActivityInfoWolves()
+						break
+					case "vote":
+						document.getElementById("title").textContent = "The village votes..."
+						setVisible("game-players", true)
+						getActivityInfoVote()
+						break
+					case "finished":
+						document.getElementById("title").textContent = "Game over!"
+						setVisible("game-players", true)
+						getActivityInfoFinished()
+						break
+					default:
+						document.getElementById("title").textContent = "Unknown activity: " + activity
+						break
+				}
+			})
+		}
+
+
+		function getActivityInfoWolves() {
+			requestGet("{{ url_for('api.get_game_info_activity', code='__code', activity='wolves') }}"
+					.replace("__code", getGameCode()), function(e) {
+				let info = JSON.parse(e.target.response)
+				createVoteButtons(info["options"], "wolves", info["vote_count"], info["vote"])
+			})
+		}
+
+
+		function getActivityInfoVote() {
+			requestGet("{{ url_for('api.get_game_info_activity', code='__code', activity='vote') }}"
+					.replace("__code", getGameCode()), function(e) {
+				let info = JSON.parse(e.target.response)
+				createVoteButtons(info["options"], "vote", info["vote_count"], info["vote"])
+			})
+		}
+
+
+		function getActivityInfoFinished() {
+			requestGet("{{ url_for('api.get_game_info_activity', code='__code', activity='finished') }}"
+					.replace("__code", getGameCode()), function(e) {
+				let info = JSON.parse(e.target.response)
+				document.getElementById("game-players").textContent = "Winners: " + info["winners"]
+			})
+		}
+
+
+		function createVoteButtons(players, activity, votes, our_vote) {
+			let playerDOM = document.getElementById("game-players")
+			playerDOM.innerHTML = ''
+			for (let i = 0; i < players.length; i++) {
+				let button = document.createElement("input")
+				button.type = "button"
+				let name = players[i]
+				button.value = name + " (" + (votes[name] || 0) + ")"
+				if (name === our_vote)
+					button.value = "> " + button.value + " <"
+				button.onclick = function () {
+					performAction(activity, { "player": name })
+				}
+				playerDOM.appendChild(button)
+			}
+		}
+
+
+		function performAction(activity, action) {
+			requestPost("{{ url_for('api.perform_action', code='__code', activity='__activity') }}"
+					.replace("__code", getGameCode()).replace("__activity", activity),
+					action, function(e) {
+			})
+		}
+
+
+		(function() {
+			if (getGameCode() === "") {
+				setVisible("index", true)
+				setVisible("game", false)
+			} else {
+				setVisible("index", false)
+				setVisible("game", true)
+				setVisible("game-players", false)
+				setVisible("game-start", false)
+				getGameInfo()
+			}
+			window.setInterval(function() {
+				if (getGameCode() !== "")
+					getGameInfo()
+			}, 2500)
+		})()
+	</script>
 {% endblock %}
