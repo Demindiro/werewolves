@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block body %}
+	{{ super() }}
+	<input type="text" name="code" placeholder="{{ gettext('Code') }}" />
+	<input type="button" name="Submit" value="{{ gettext('Join game') }}" />
+	<br>
+	<a href="{{ url_for('create_game') }}">{{ gettext('Create game') }}</a>
+{% endblock %}

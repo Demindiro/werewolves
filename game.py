@@ -7,20 +7,17 @@ class GameException(Exception):
 
 class Game:
 
-    player_roles = {}
-    dead_players = set()
-    current_activity = ''
-    started = False
-    finished = False
-    _activity_order = (
+    def __init__(self):
+        self.player_roles = {}
+        self.dead_players = set()
+        self.current_activity = 'waiting'
+        self.started = False
+        self.finished = False
+        self._activity_order = (
             'wolves',
             'vote',
         )
-    _activity_index = 0
-    _activity_state = {}
-
-
-    def __init__(self):
+        self._activity_index = 0
         self._activity_actions = {
             'vote': self._action_vote,
             'wolves': self._action_wolves,
@@ -29,16 +26,19 @@ class Game:
             'vote': self._info_vote,
             'wolves': self._info_wolves,
         }
+        self._activity_state = {}
 
 
     def add_player(self, name: str):
         name = name.strip()
         if name in self.player_roles:
-            raise GameException('Name {name} has already been taken')
+            raise GameException(f'Name {name} has already been taken')
         self.player_roles[name] = 'citizen'
 
 
     def start(self):
+        if len(self.player_roles) < 4:
+            raise GameException('You need at least 4 players to start a game')
         wolf = random.choice(list(self.player_roles))
         self.player_roles[wolf] = 'wolf'
         self.current_activity = self._activity_order[self._activity_index]
@@ -46,11 +46,18 @@ class Game:
 
 
     def perform_action(self, player: str, activity: str, action: dict):
-        if self.finished:
-            raise GameException('The game has finished')
+        self._check_not_finished()
         if activity not in self._activity_actions:
             raise GameException(f'Activity {activity} does not exist')
         return self._activity_actions[activity](player, action)
+
+
+    def get_info(self, player: str, activity: str):
+        if self.finished:
+            return self._info_finished()
+        if activity not in self._activity_actions:
+            raise GameException(f'Activity {activity} does not exist')
+        return self._activity_info[activity](player)
 
 
     def _next_activity(self):
@@ -120,24 +127,35 @@ class Game:
                 self._next_activity()
 
 
-    def _info_vote(self, player: str, action: dict):
+    def _info_vote(self, player: str):
+        self._check_activity('vote')
+        state = self._activity_state
         return {
                 'vote': state['voted_for'].get(player),
-                'vote_count': state.getdefault('votes', {}),
+                'vote_count': state.get('votes', {}),
                 'options': [] if player in self.dead_players else
-                        [p for p in player_roles if p not in self.dead_players]
+                        [p for p in self.player_roles if p not in self.dead_players]
             }
 
 
-    def _info_wolves(self, player: str, action: dict):
-        if player_roles[player] == 'wolf':
+    def _info_wolves(self, player: str):
+        self._check_activity('wolves')
+        state = self._activity_state
+        if self.player_roles[player] == 'wolf':
             return {
-                    'vote': state['voted_for'].get(player),
-                    'vote_count': state.getdefault('votes', {}),
+                    'vote': state.get('voted_for', {}).get(player),
+                    'vote_count': state.get('votes', {}),
                     'options': [] if player in self.dead_players else
-                            [p for p in player_roles if p not in self.dead_players]
+                            [p for p in self.player_roles if p not in self.dead_players]
                 }
         return {}
+
+
+    def _info_finished(self):
+        assert(self.finished)
+        return {
+                'winners': self._activity_state['winners']
+            }
 
 
     def _is_finished(self):
@@ -170,6 +188,11 @@ class Game:
     def _check_exists(self, name: str):
         if name not in self.player_roles:
             raise GameException(f'Player {name} does not exist')
+
+
+    def _check_not_finished(self):
+        if self.finished:
+            raise GameException('The game has finished')
 
 
     def _get_action_value(action: dict, key: str, p_type: type):

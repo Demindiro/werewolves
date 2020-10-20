@@ -5,4 +5,4 @@ then
 	source venv/bin/activate
 fi
 
-FLASK_APP=main.py flask run $@
+FLASK_ENV=development FLASK_APP=web.py ./web.py $@

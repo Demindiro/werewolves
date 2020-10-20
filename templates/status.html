@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block body %}
+	{{ super() }}
+	<p>Games active: {{ game_count }}</p>
+	<p>Games since reboot: {{ total_game_count }}</p>
+{% endblock %}

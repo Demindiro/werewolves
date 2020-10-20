@@ -34,6 +34,12 @@ if True:
         game.perform_action(player, 'vote', {'player': player})
 
     assert game.current_activity == 'vote'
+    assert game.get_info(wolf, 'vote') == {
+            'vote': wolf,
+            'vote_count': {p: 1 for p in game.player_roles if p not in game.dead_players},
+            'options': [p for p in game.player_roles if p not in game.dead_players],
+        }
+    assert game.dead_players == {victim}
 
     # Make any alive citizen vote for the wolf
     for player in (p for p, r in game.player_roles.items() if r != 'wolf' and
@@ -42,3 +48,4 @@ if True:
         break
 
     assert game.finished
+    assert game.dead_players == {victim, wolf}
