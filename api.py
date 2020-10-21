@@ -2,7 +2,10 @@
 
 import random
 import sys
-from flask import Flask, redirect, url_for, render_template, request, session, Blueprint
+import time
+import json
+from flask import Flask, redirect, url_for, render_template, request, session, \
+        Blueprint, Response
 from game import Game
 import gamedb
 
@@ -46,14 +49,8 @@ def get_game_info(code: str):
     game = gamedb.load_game(code)
     if game is None:
         return {'message': f'Game {code} not found'}, 404
-    d = {
-            'activity': game.activity,
-            'players': list(game.player_roles),
-        }
-    name = session.get(code)
-    if name is not None or game.activity == 'finished':
-        d['state'] = game.get_info(name)
-    return d
+    player = session.get(code)
+    return _parse_game_info(game, player)
 
 
 @api.route('/action/<string:code>/', methods=['POST'])
@@ -105,3 +102,45 @@ def start_game(code: str):
         game.start()
         gamedb.save_game(code, game)
     return {}, 200
+
+
+@api.route('/stream/<string:code>/')
+def stream_game_info(code: str):
+    player = session.get(code)
+    def stream():
+        try:
+            serialized = None
+            counter = 0
+            while True:
+                serialized_now = gamedb.load_game_raw(code)
+                if serialized_now is None:
+                    return {'message': f'Game {code} not found'}, 404
+                if serialized_now != serialized:
+                    if __debug__:
+                        eprint(f'Sending info for game {code}')
+                    print(_parse_game_info(Game(serialized_now), player))
+                    yield json.dumps(_parse_game_info(Game(serialized_now), player)) + '\n'
+                    serialized = serialized_now
+                counter += 1
+                if counter % 10 == 0:
+                    yield '"beat"\n'
+                time.sleep(1)
+        finally:
+            if __debug__:
+                msg = f'Stopped stream for game {code} - '
+                if player is not None:
+                    msg += f'player {player}'
+                else:
+                    msg += 'no player'
+                eprint(msg)
+    return Response(stream(), mimetype='text/event-stream')
+
+
+def _parse_game_info(game: Game, player: str = None):
+    d = {
+            'activity': game.activity,
+            'players': list(game.player_roles),
+        }
+    if player is not None or game.activity == 'finished':
+        d['state'] = game.get_info(player)
+    return d

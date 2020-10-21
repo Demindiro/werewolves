@@ -57,6 +57,14 @@ def load_game(code: str) -> Game:
     return None
 
 
+def load_game_raw(code: str) -> Game:
+    cursor.execute("SELECT state FROM games WHERE code = ?", (code,))
+    row = cursor.fetchone()
+    if row is not None:
+        return row[0]
+    return None
+
+
 if __name__ == '__main__':
     print(f'Creating table games')
     cursor.execute('''
