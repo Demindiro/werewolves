@@ -119,13 +119,15 @@ def stream_game_info(code: str):
                     if __debug__:
                         eprint(f'Sending info for game {code}')
                     print(_parse_game_info(Game(serialized_now), player))
-                    yield json.dumps(
+                    yield 'event: info\n' + \
+                            'data: ' + json.dumps(
                             _parse_game_info(Game(serialized_now), player),
-                            separators=(',',':')) + '\n'
+                            separators=(',',':')) + \
+                            '\n\n'
                     serialized = serialized_now
                 counter += 1
                 if counter % 10 == 0:
-                    yield '"beat"\n'
+                    yield ':\n\n'
                 time.sleep(1)
         finally:
             if __debug__:
