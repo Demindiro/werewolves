@@ -129,17 +129,17 @@
 					case "wolves":
 						document.getElementById("title").textContent = "The wolves awaken..."
 						setVisible("game-players", true)
-						getActivityInfoWolves()
+						getActivityInfoWolves(info["state"])
 						break
 					case "vote":
 						document.getElementById("title").textContent = "The village votes..."
 						setVisible("game-players", true)
-						getActivityInfoVote()
+						getActivityInfoVote(info["state"])
 						break
 					case "finished":
 						document.getElementById("title").textContent = "Game over!"
 						setVisible("game-players", true)
-						getActivityInfoFinished()
+						getActivityInfoFinished(info["state"])
 						break
 					default:
 						document.getElementById("title").textContent = "Unknown activity: " + activity
@@ -149,30 +149,18 @@
 		}
 
 
-		function getActivityInfoWolves() {
-			requestGet("{{ url_for('api.get_game_info_activity', code='__code', activity='wolves') }}"
-					.replace("__code", getGameCode()), function(e) {
-				let info = JSON.parse(e.target.response)
-				createVoteButtons(info["options"], "wolves", info["vote_count"], info["vote"])
-			})
+		function getActivityInfoWolves(state) {
+			createVoteButtons(state["options"], "wolves", state["vote_count"], state["vote"])
 		}
 
 
-		function getActivityInfoVote() {
-			requestGet("{{ url_for('api.get_game_info_activity', code='__code', activity='vote') }}"
-					.replace("__code", getGameCode()), function(e) {
-				let info = JSON.parse(e.target.response)
-				createVoteButtons(info["options"], "vote", info["vote_count"], info["vote"])
-			})
+		function getActivityInfoVote(state) {
+			createVoteButtons(state["options"], "vote", state["vote_count"], state["vote"])
 		}
 
 
-		function getActivityInfoFinished() {
-			requestGet("{{ url_for('api.get_game_info_activity', code='__code', activity='finished') }}"
-					.replace("__code", getGameCode()), function(e) {
-				let info = JSON.parse(e.target.response)
-				document.getElementById("game-players").textContent = "Winners: " + info["winners"]
-			})
+		function getActivityInfoFinished(state) {
+			document.getElementById("game-players").textContent = "Winners: " + state["winners"]
 		}
 
 
