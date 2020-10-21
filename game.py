@@ -68,7 +68,7 @@ class Game:
                 'dead': list(self.dead_players),
                 'activity': self.activity,
                 'state': self._activity_state,
-            })
+            }, separators=(',',':'))
 
 
     def _next_activity(self):

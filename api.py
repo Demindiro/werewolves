@@ -119,7 +119,9 @@ def stream_game_info(code: str):
                     if __debug__:
                         eprint(f'Sending info for game {code}')
                     print(_parse_game_info(Game(serialized_now), player))
-                    yield json.dumps(_parse_game_info(Game(serialized_now), player)) + '\n'
+                    yield json.dumps(
+                            _parse_game_info(Game(serialized_now), player),
+                            separators=(',',':')) + '\n'
                     serialized = serialized_now
                 counter += 1
                 if counter % 10 == 0:
