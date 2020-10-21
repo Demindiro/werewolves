@@ -26,13 +26,13 @@ class Game:
         if serialized_data is None:
             self.player_roles = {}
             self.dead_players = set()
-            self.current_activity = 'waiting'
+            self.activity = 'waiting'
             self._activity_state = {}
         else:
             data = json.loads(serialized_data)
             self.player_roles = data['players']
             self.dead_players = set(data['dead'])
-            self.current_activity = data['activity']
+            self.activity = data['activity']
             self._activity_state = data['state']
 
 
@@ -48,7 +48,7 @@ class Game:
             raise GameException('You need at least 4 players to start a game')
         wolf = random.choice(list(self.player_roles))
         self.player_roles[wolf] = 'wolf'
-        self.current_activity = self._activity_order[0]
+        self.activity = self._activity_order[0]
 
 
     def perform_action(self, player: str, activity: str, action: dict):
@@ -68,7 +68,7 @@ class Game:
         return json.dumps({
                 'players': self.player_roles,
                 'dead': list(self.dead_players),
-                'activity': self.current_activity,
+                'activity': self.activity,
                 'state': self._activity_state,
             })
 
@@ -76,22 +76,22 @@ class Game:
     def _next_activity(self):
         self._activity_state = {}
 
-        if self.current_activity == 'vote':
+        if self.activity == 'vote':
             if self._is_finished():
-                self.current_activity = 'finished'
+                self.activity = 'finished'
                 return
 
-        assert self.current_activity != 'waiting'
-        assert self.current_activity != 'finished'
+        assert self.activity != 'waiting'
+        assert self.activity != 'finished'
 
-        index = self._activity_order.index(self.current_activity)
+        index = self._activity_order.index(self.activity)
         index += 1
         index %= len(self._activity_order)
-        self.current_activity = self._activity_order[index]
+        self.activity = self._activity_order[index]
 
-        if self.current_activity == 'vote':
+        if self.activity == 'vote':
             if self._is_finished():
-                self.current_activity = 'finished'
+                self.activity = 'finished'
 
 
     def _action_vote(self, player: str, action: dict):
@@ -191,8 +191,8 @@ class Game:
 
 
     def _check_activity(self, name: str):
-        if self.current_activity != name:
-            raise GameException(f'Current activity is {self.current_activity}, not {name}')
+        if self.activity != name:
+            raise GameException(f'Current activity is {self.activity}, not {name}')
 
 
     def _check_alive(self, name: str):
@@ -206,7 +206,7 @@ class Game:
 
 
     def _check_not_finished(self):
-        if self.current_activity == 'finished':
+        if self.activity == 'finished':
             raise GameException('The game has finished')
 
 

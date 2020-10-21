@@ -47,7 +47,7 @@ def get_game_info(code: str):
     if game is None:
         return {'message': f'Game {code} not found'}, 404
     return {
-            'activity': game.current_activity,
+            'activity': game.activity,
             'players': list(game.player_roles),
         }
 
@@ -91,7 +91,7 @@ def join_game(code: str):
                 return {'message': f'Already joined game {code}'}, 400
             else:
                 return {'message': f'Name {name} already taken'}, 403
-        if game.current_activity != 'waiting':
+        if game.activity != 'waiting':
             return {'message': f'Game {code} has already started'}, 404
         if code in session:
             eprint(f'Player {name} has code {code} set but has not joined the game')
@@ -107,7 +107,7 @@ def start_game(code: str):
         game = gamedb.load_game(code)
         if game is None:
             return {'message': f'Game {code} not found'}, 404
-        if game.current_activity != 'waiting':
+        if game.activity != 'waiting':
             return {'message': f'Game {code} has already started'}, 404
         game.start()
         gamedb.save_game(code, game)
