@@ -104,11 +104,13 @@ if len(wolves) == 1:
         assert r.json()['state']['options'] == [] if n == dead else alive
 
     # Make any player except the wolf vote for the wolf
-    for n in (u for u in alive if u != wolf):
-        r = req.post(f'{BASE_URL}/action/{game_code}/', cookies={'session': sessions[n]},
-                data = {'player': wolf})
-        assert r.status_code == 200
-        break
+    # Also check the player didn't already vote for the wolf
+    for n, m in zip(alive, shuffled):
+        if n != wolf and m != wolf:
+            r = req.post(f'{BASE_URL}/action/{game_code}/', cookies={'session': sessions[n]},
+                    data = {'player': wolf})
+            assert r.status_code == 200
+            break
 
     # Check if the game has finished
     for n in alive:
