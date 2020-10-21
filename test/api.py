@@ -42,8 +42,7 @@ for n in names:
     r = req.get(f'{BASE_URL}/info/{game_code}/', cookies={'session': sessions[n]})
     assert r.status_code == 200
     assert r.json() == j
-    assert r.json()['started']
-    assert not r.json()['finished']
+    assert r.json()['activity'] != 'waiting'
     assert set(r.json()['players']) == set(names)
 
 activity = j['activity']
@@ -76,12 +75,11 @@ if len(wolves) == 1:
             break
     alive = [u for u in names if u != dead]
 
-    # Check if the current activity is voting now and that the game hasn't finished yet
+    # Check if the current activity is voting
     for n in names:
         r = req.get(f'{BASE_URL}/info/{game_code}/', cookies={'session': sessions[n]})
         assert r.status_code == 200
         assert r.json()['activity'] == 'vote'
-        assert not r.json()['finished']
 
     # Simulate a voting tie
     shuffled = alive[:]
@@ -91,12 +89,11 @@ if len(wolves) == 1:
                 data = {'player': m})
         assert r.status_code == 200
 
-    # Check if the current activity is still voting now and that the game hasn't finished yet
+    # Check if the current activity is still voting
     for n in names:
         r = req.get(f'{BASE_URL}/info/{game_code}/', cookies={'session': sessions[n]})
         assert r.status_code == 200
         assert r.json()['activity'] == 'vote'
-        assert not r.json()['finished']
 
     # Check if the votes are cast correctly:
     for n, m in zip(alive, shuffled):
@@ -116,8 +113,8 @@ if len(wolves) == 1:
     # Check if the game has finished
     for n in alive:
         r = req.get(f'{BASE_URL}/info/{game_code}/', cookies={'session': sessions[n]})
+        assert r.json()['activity'] == 'finished'
         assert r.status_code == 200
-        assert r.json()['finished']
  
 else:
 
