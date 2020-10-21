@@ -46,10 +46,14 @@ def get_game_info(code: str):
     game = gamedb.load_game(code)
     if game is None:
         return {'message': f'Game {code} not found'}, 404
-    return {
+    d = {
             'activity': game.activity,
             'players': list(game.player_roles),
         }
+    name = session.get(code)
+    if name is not None:
+        d['state'] = game.get_info(name)
+    return d
 
 
 @api.route('/action/<string:code>/<string:activity>/', methods=['POST'])
@@ -64,17 +68,6 @@ def perform_action(code: str, activity: str):
         game.perform_action(name, activity, request.form)
         gamedb.save_game(code, game)
     return {}, 200
-
-
-@api.route('/info/<string:code>/<string:activity>/')
-def get_game_info_activity(code: str, activity: str):
-    game = gamedb.load_game(code)
-    if game is None:
-        return {'message': f'Game {code} not found'}, 404
-    name = session.get(code)
-    if name is None:
-        return {'message': f'Name is not set'}, 400
-    return game.get_info(name, activity)
 
 
 @api.route('/join/<string:code>/', methods=['POST'])

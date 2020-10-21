@@ -41,7 +41,7 @@ assert r.status_code == 200
 for n in names:
     r = req.get(f'{BASE_URL}/info/{game_code}/', cookies={'session': sessions[n]})
     assert r.status_code == 200
-    assert r.json() == j
+    assert r.json()['activity'] == j['activity']
     assert r.json()['activity'] != 'waiting'
     assert set(r.json()['players']) == set(names)
 
@@ -51,12 +51,12 @@ activity = j['activity']
 assert activity == 'wolves'
 wolves = []
 for n in names:
-    r = req.get(f'{BASE_URL}/info/{game_code}/wolves/', cookies={'session': sessions[n]})
+    r = req.get(f'{BASE_URL}/info/{game_code}/', cookies={'session': sessions[n]})
     assert r.status_code == 200
     j = r.json()
-    if len(j) > 0:
+    if len(j['state']) > 0:
         wolves.append(n)
-        assert set(j['options']) == set(names)
+        assert set(j['state']['options']) == set(names)
 
 assert len(wolves) > 0
 
@@ -97,11 +97,11 @@ if len(wolves) == 1:
 
     # Check if the votes are cast correctly:
     for n, m in zip(alive, shuffled):
-        r = req.get(f'{BASE_URL}/info/{game_code}/vote/', cookies={'session': sessions[n]})
+        r = req.get(f'{BASE_URL}/info/{game_code}/', cookies={'session': sessions[n]})
         assert r.status_code == 200
-        assert r.json()['vote'] == m
-        assert r.json()['vote_count'] == {u: 1 for u in alive}
-        assert r.json()['options'] == [] if n == dead else alive
+        assert r.json()['state']['vote'] == m
+        assert r.json()['state']['vote_count'] == {u: 1 for u in alive}
+        assert r.json()['state']['options'] == [] if n == dead else alive
 
     # Make any player except the wolf vote for the wolf
     for n in (u for u in alive if u != wolf):
@@ -118,16 +118,19 @@ if len(wolves) == 1:
  
 else:
 
+    # TODO
+    assert False
+
     # Make the wolves vote for themselves to simulate a tie
     for n in wolves:
-        r = req.post(f'{BASE_URL}/action/{game_code}/wolves/', cookies={'session': sessions[n]},
+        r = req.post(f'{BASE_URL}/action/{game_code}/', cookies={'session': sessions[n]},
                 data = {'player': n})
         assert r.status_code == 200
 
     # Make sure the votes are cast correctly
     assert activity == 'wolves'
     for n in wolves:
-        r = req.get(f'{BASE_URL}/info/{game_code}/wolves/', cookies={'session': sessions[n]})
+        r = req.get(f'{BASE_URL}/info/{game_code}/', cookies={'session': sessions[n]})
         assert r.status_code == 200
         j = r.json()
         assert len(j) > 0

@@ -58,10 +58,8 @@ class Game:
         return self._activity_actions[activity](player, action)
 
 
-    def get_info(self, player: str, activity: str):
-        if activity not in self._activity_info:
-            raise GameException(f'Activity {activity} does not exist')
-        return self._activity_info[activity](player)
+    def get_info(self, player: str):
+        return self._activity_info[self.activity](player)
 
 
     def serialize(self):
@@ -166,7 +164,7 @@ class Game:
         return {}
 
 
-    def _info_finished(self):
+    def _info_finished(self, player: str):
         self._check_activity('finished')
         return {
                 'winners': self._activity_state['winners']
