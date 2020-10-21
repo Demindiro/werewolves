@@ -51,7 +51,7 @@ def get_game_info(code: str):
             'players': list(game.player_roles),
         }
     name = session.get(code)
-    if name is not None:
+    if name is not None or game.activity == 'finished':
         d['state'] = game.get_info(name)
     return d
 
