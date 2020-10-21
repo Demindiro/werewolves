@@ -18,7 +18,7 @@ class Game:
             'wolves': self._action_wolves,
         }
         self._activity_info = {
-            'waiting': lambda : {},
+            'waiting': lambda _: {},
             'finished': self._info_finished,
             'vote': self._info_vote,
             'wolves': self._info_wolves,
