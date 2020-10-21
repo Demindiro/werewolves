@@ -110,42 +110,46 @@
 			let url = "{{ url_for('api.get_game_info', code='__code') }}".replace("__code", code)
 			getField("game", "code").textContent = "{{ gettext('Code') }}: " + code
 			requestGet(url, function(e) {
-				let info = JSON.parse(e.target.response)
-				let activity = info["activity"]
-				let players = info["players"] || []
-				setVisible("game-players", false)
-				setVisible("game-start", false)
-				switch (activity) {
-					case "waiting":
-						document.getElementById("title").textContent = "Waiting for players"
-						setVisible("game-players", true)
-						setVisible("game-start", true)
-						let text = ""
-						for (let i = 0; i < players.length; i++) {
-							text += players[i] + ", "
-						}
-						document.getElementById("game-players").textContent = text
-						break
-					case "wolves":
-						document.getElementById("title").textContent = "The wolves awaken..."
-						setVisible("game-players", true)
-						getActivityInfoWolves(info["state"])
-						break
-					case "vote":
-						document.getElementById("title").textContent = "The village votes..."
-						setVisible("game-players", true)
-						getActivityInfoVote(info["state"])
-						break
-					case "finished":
-						document.getElementById("title").textContent = "Game over!"
-						setVisible("game-players", true)
-						getActivityInfoFinished(info["state"])
-						break
-					default:
-						document.getElementById("title").textContent = "Unknown activity: " + activity
-						break
-				}
+				parseGameInfo(JSON.parse(e.target.response))
 			})
+		}
+
+
+		function parseGameInfo(info) {
+			let activity = info["activity"]
+			let players = info["players"] || []
+			setVisible("game-players", false)
+			setVisible("game-start", false)
+			switch (activity) {
+				case "waiting":
+					document.getElementById("title").textContent = "Waiting for players"
+					setVisible("game-players", true)
+					setVisible("game-start", true)
+					let text = ""
+					for (let i = 0; i < players.length; i++) {
+						text += players[i] + ", "
+					}
+					document.getElementById("game-players").textContent = text
+					break
+				case "wolves":
+					document.getElementById("title").textContent = "The wolves awaken..."
+					setVisible("game-players", true)
+					getActivityInfoWolves(info["state"])
+					break
+				case "vote":
+					document.getElementById("title").textContent = "The village votes..."
+					setVisible("game-players", true)
+					getActivityInfoVote(info["state"])
+					break
+				case "finished":
+					document.getElementById("title").textContent = "Game over!"
+					setVisible("game-players", true)
+					getActivityInfoFinished(info["state"])
+					break
+				default:
+					document.getElementById("title").textContent = "Unknown activity: " + activity
+					break
+			}
 		}
 
 
@@ -199,12 +203,12 @@
 				setVisible("game", true)
 				setVisible("game-players", false)
 				setVisible("game-start", false)
-				getGameInfo()
+				const stream = new EventSource("{{ url_for('api.stream_game_info', code='__code') }}"
+						.replace("__code", getGameCode()))
+				stream.onmessage = function(event) {
+					parseGameInfo(JSON.parse(event.data))
+				}
 			}
-			window.setInterval(function() {
-				if (getGameCode() !== "")
-					getGameInfo()
-			}, 2500)
 		})()
 	</script>
 {% endblock %}
