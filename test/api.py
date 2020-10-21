@@ -68,7 +68,7 @@ if len(wolves) == 1:
     dead = None
     for n in names:
         if n != wolf:
-            r = req.post(f'{BASE_URL}/action/{game_code}/wolves/', cookies={'session': sessions[wolf]},
+            r = req.post(f'{BASE_URL}/action/{game_code}/', cookies={'session': sessions[wolf]},
                     data = {'player': n})
             dead = n
             assert r.status_code == 200
@@ -85,7 +85,7 @@ if len(wolves) == 1:
     shuffled = alive[:]
     random.shuffle(shuffled)
     for n, m in zip(alive, shuffled):
-        r = req.post(f'{BASE_URL}/action/{game_code}/vote/', cookies={'session': sessions[n]},
+        r = req.post(f'{BASE_URL}/action/{game_code}/', cookies={'session': sessions[n]},
                 data = {'player': m})
         assert r.status_code == 200
 
@@ -105,7 +105,7 @@ if len(wolves) == 1:
 
     # Make any player except the wolf vote for the wolf
     for n in (u for u in alive if u != wolf):
-        r = req.post(f'{BASE_URL}/action/{game_code}/vote/', cookies={'session': sessions[n]},
+        r = req.post(f'{BASE_URL}/action/{game_code}/', cookies={'session': sessions[n]},
                 data = {'player': wolf})
         assert r.status_code == 200
         break

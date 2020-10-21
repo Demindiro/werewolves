@@ -56,8 +56,8 @@ def get_game_info(code: str):
     return d
 
 
-@api.route('/action/<string:code>/<string:activity>/', methods=['POST'])
-def perform_action(code: str, activity: str):
+@api.route('/action/<string:code>/', methods=['POST'])
+def perform_action(code: str):
     with gamedb.lock:
         game = gamedb.load_game(code)
         if game is None:
@@ -65,7 +65,7 @@ def perform_action(code: str, activity: str):
         name = session.get(code)
         if name is None:
             return {'message': f'Name is not set'}, 404
-        game.perform_action(name, activity, request.form)
+        game.perform_action(name, request.form)
         gamedb.save_game(code, game)
     return {}, 200
 

@@ -51,11 +51,11 @@ class Game:
         self.activity = self._activity_order[0]
 
 
-    def perform_action(self, player: str, activity: str, action: dict):
+    def perform_action(self, player: str, action: dict):
         self._check_not_finished()
-        if activity not in self._activity_actions:
-            raise GameException(f'Activity {activity} does not exist')
-        return self._activity_actions[activity](player, action)
+        if self.activity == 'waiting':
+            return GameError('Game has not started yet')
+        return self._activity_actions[self.activity](player, action)
 
 
     def get_info(self, player: str):
