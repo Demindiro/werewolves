@@ -36,10 +36,6 @@ class Game:
             self.started = self.current_activity != 'waiting'
             self.finished = self.current_activity == 'finished'
             self._activity_state = data['state']
-            if self.finished == self.started:
-                self._activity_index = -1
-            else:
-                self._activity_index = self._activity_order.index(self.current_activity)
 
 
     def add_player(self, name: str):
@@ -54,7 +50,7 @@ class Game:
             raise GameException('You need at least 4 players to start a game')
         wolf = random.choice(list(self.player_roles))
         self.player_roles[wolf] = 'wolf'
-        self.current_activity = self._activity_order[self._activity_index]
+        self.current_activity = self._activity_order[0]
         self.started = True
 
 
@@ -98,10 +94,10 @@ class Game:
 
         assert(not self.finished)
 
-        assert(self._activity_order[self._activity_index] == self.current_activity)
-        self._activity_index += 1
-        self._activity_index %= len(self._activity_order)
-        self.current_activity = self._activity_order[self._activity_index]
+        index = self._activity_order.index(self.current_activity)
+        index += 1
+        index %= len(self._activity_order)
+        self.current_activity = self._activity_order[index]
 
         if self.current_activity == 'vote':
             self.finished = self._is_finished()
