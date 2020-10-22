@@ -13,6 +13,9 @@
 		<h2 class="code"></h2>
 		<p id="game-players"></p>
 		<input id="game-start" type="button" onclick="startGame()" value="{{ gettext('Start game') }}" />
+		<br />
+		<input id="game-name" type="text" placeholder="{{ gettext('Username') }}" />
+		<input id="game-join" type="button" onclick="joinGame()" value="{{ gettext('Join') }}" />
 	</div>
 	<script>
 		function showError(text) {
@@ -99,9 +102,19 @@
 		function startGame() {
 			let url = "{{ url_for('api.start_game', code='__code') }}"
 					.replace("__code", getGameCode())
-			requestPost(url, function(e) {
-				getGameInfo()
-			})
+			requestPost(url)
+		}
+
+
+		function joinGame() {
+			let url = "{{ url_for('api.join_game', code='__code') }}"
+					.replace("__code", getGameCode())
+			let name = document.getElementById("game-name").value
+			if (name.length === 0) {
+				showError("Name field may not be empty")
+				return
+			}
+			requestPost(url, {"name": name})
 		}
 
 
