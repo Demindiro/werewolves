@@ -144,6 +144,8 @@ def _parse_game_info(game: Game, player: str = None):
             'activity': game.activity,
             'players': list(game.player_roles),
         }
+    if player is not None:
+        d['name'] = player
     if player is not None or game.activity == 'finished':
         d['state'] = game.get_info(player)
     return d

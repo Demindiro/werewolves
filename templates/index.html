@@ -114,7 +114,9 @@
 				showError("Name field may not be empty")
 				return
 			}
-			requestPost(url, {"name": name})
+			requestPost(url, {"name": name}, function(e) {
+				openStream()
+			})
 		}
 
 
@@ -133,6 +135,14 @@
 			let players = info["players"] || []
 			setVisible("game-players", false)
 			setVisible("game-start", false)
+			if (info["players"].indexOf(info["name"]) >= 0) {
+				setVisible("game-name", false)
+				setVisible("game-join", false)
+			} else {
+				setVisible("game-name", true)
+				setVisible("game-join", true)
+			}
+			console.log(info)
 			switch (activity) {
 				case "waiting":
 					document.getElementById("title").textContent = "Waiting for players"
@@ -206,6 +216,19 @@
 			})
 		}
 
+		let stream
+		function openStream() {
+			if (stream !== undefined) {
+				console.log("Closing stream")
+				stream.close()
+			}
+			console.log("Starting stream")
+			stream = new EventSource("{{ url_for('api.stream_game_info', code='__code') }}"
+					.replace("__code", getGameCode()))
+			stream.onmessage = function(event) {
+				parseGameInfo(JSON.parse(event.data))
+			}
+		}
 
 		(function() {
 			if (getGameCode() === "") {
@@ -216,11 +239,7 @@
 				setVisible("game", true)
 				setVisible("game-players", false)
 				setVisible("game-start", false)
-				const stream = new EventSource("{{ url_for('api.stream_game_info', code='__code') }}"
-						.replace("__code", getGameCode()))
-				stream.onmessage = function(event) {
-					parseGameInfo(JSON.parse(event.data))
-				}
+				openStream()
 			}
 		})()
 	</script>
