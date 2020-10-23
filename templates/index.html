@@ -170,13 +170,13 @@
 				case "vote":
 					document.getElementById("title").textContent = "The village votes..."
 					setVisible("game-players", true)
-					getActivityInfoVote(info["state"] | [])
+					getActivityInfoVote(info["state"] || [])
 					setDay(true)
 					break
 				case "finished":
 					document.getElementById("title").textContent = "Game over!"
 					setVisible("game-players", true)
-					getActivityInfoFinished(info["state"] | [])
+					getActivityInfoFinished(info["state"] || [])
 					break
 				default:
 					document.getElementById("title").textContent = "Unknown activity: " + activity
