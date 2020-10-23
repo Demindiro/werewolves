@@ -3,19 +3,27 @@
 	{{ super() }}
 	<p id="error" style="display:none"></p>
 	<div id="index" style="display:none">
-		<input class="code" type="text" placeholder="{{ gettext('Code') }}" />
-		<input type="button" onclick="showGame()" value="{{ gettext('View game') }}" />
+		<form onsubmit="showGame(); return false">
+			<input class="code" type="text" placeholder="{{ gettext('Code') }}" />
+			<input type="submit" value="{{ gettext('View game') }}" />
+		</form>
 		<br />
-		<input class="name" type="text" placeholder="{{ gettext('Username') }}" />
-		<input type="button" onclick="createGame()" value="{{ gettext('Create game') }}" />
+		<form onsubmit="createGame(); return false">
+			<input class="name" type="text" placeholder="{{ gettext('Username') }}" />
+			<input type="submit" value="{{ gettext('Create game') }}" />
+		</form>
 	</div>
 	<div id="game" style="display:none">
 		<h2 class="code"></h2>
 		<p id="game-players"></p>
-		<input id="game-start" type="button" onclick="startGame()" value="{{ gettext('Start game') }}" />
+		<form onsubmit="startGame(); return false">
+			<input id="game-start" type="submit" value="{{ gettext('Start game') }}" />
+		</form>
 		<br />
-		<input id="game-name" type="text" placeholder="{{ gettext('Username') }}" />
-		<input id="game-join" type="button" onclick="joinGame()" value="{{ gettext('Join') }}" />
+		<form id="game-join" onsubmit="joinGame(); return false">
+			<input id="game-name" type="text" placeholder="{{ gettext('Username') }}" />
+			<input type="submit" value="{{ gettext('Join') }}" />
+		</form>
 	</div>
 	<script>
 		function showError(text) {
