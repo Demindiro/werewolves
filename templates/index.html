@@ -155,9 +155,9 @@
 					document.getElementById("title").textContent = "Waiting for players"
 					setVisible("game-players", true)
 					setVisible("game-start", true)
-					let text = ""
-					for (let i = 0; i < players.length; i++) {
-						text += players[i] + ", "
+					let text = players.length > 0 ? players[0] : ""
+					for (let i = 1; i < players.length; i++) {
+						text += ", " + players[i]
 					}
 					document.getElementById("game-players").textContent = text
 					break
