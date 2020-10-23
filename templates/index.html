@@ -177,12 +177,12 @@
 
 
 		function getActivityInfoWolves(state) {
-			createVoteButtons(state["options"], "wolves", state["vote_count"], state["vote"])
+			createVoteButtons(state["options"] || [], "wolves", state["vote_count"], state["vote"])
 		}
 
 
 		function getActivityInfoVote(state) {
-			createVoteButtons(state["options"], "vote", state["vote_count"], state["vote"])
+			createVoteButtons(state["options"] || [], "vote", state["vote_count"], state["vote"])
 		}
 
 
