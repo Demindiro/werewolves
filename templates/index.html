@@ -85,8 +85,13 @@
 					return
 				}
 			}
-			request("get", "{{ url_for('api.get_game_info', code='__code') }}"
-					.replace("__code", code), showRequestHandler(code))
+			requestGet("{{ url_for('api.get_game_info', code='__code') }}"
+					.replace("__code", code), function (e) {
+				if (e.target.status === 200) {
+					window.location.href = "{{ url_for('index', code='__code') }}"
+							.replace("__code", code)
+				}
+			})
 		}
 
 
@@ -98,17 +103,6 @@
 				setVisible("index", false)
 				setVisible("game", true)
 			})
-		}
-
-
-		function showRequestHandler(code) {
-			return function(e) {
-				if (this.status > 0) {
-
-				} else {
-					showError("Failed to show game")
-				}
-			}
 		}
 
 
