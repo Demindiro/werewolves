@@ -4,8 +4,28 @@
 		<title>{{ gettext('Werewolves') }}</title>
 		<meta name="viewport" content="width=device-width" />
 		<style>
+			* {
+				text-align: center;
+			}
+
+			html, body {
+				height: 100%;
+			}
+
+			html {
+				display: table;
+				margin: auto;
+			}
+
 			body {
 				transition-duration: 2s;
+				display: table-cell;
+				vertical-align: middle;
+			}
+
+			input {
+				display: block;
+				margin: auto;
 			}
 
 			body.day {
