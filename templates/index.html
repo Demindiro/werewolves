@@ -98,10 +98,10 @@
 		function createGame() {
 			let data = { name: getField("index", "name").value }
 			requestPost("{{ url_for('api.create_game') }}", data, function(e) {
-				let code = JSON.parse(e.target.response)["code"]
-				history.pushState(null, "", "/" + code + "/")
-				setVisible("index", false)
-				setVisible("game", true)
+				if (e.target.status === 201) {
+					window.location.href = "{{ url_for('index', code='__code') }}"
+							.replace("__code", code)
+				}
 			})
 		}
 
