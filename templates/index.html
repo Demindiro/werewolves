@@ -142,7 +142,7 @@
 			let players = info["players"] || []
 			setVisible("game-players", false)
 			setVisible("game-start", false)
-			if (info["players"].indexOf(info["name"]) >= 0) {
+			if (info["players"].indexOf(info["name"]) >= 0 || activity != "waiting") {
 				setVisible("game-name", false)
 				setVisible("game-join", false)
 			} else {
