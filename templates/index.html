@@ -99,6 +99,7 @@
 			let data = { name: getField("index", "name").value }
 			requestPost("{{ url_for('api.create_game') }}", data, function(e) {
 				if (e.target.status === 201) {
+					let code = JSON.parse(e.target.response)["code"]
 					window.location.href = "{{ url_for('index', code='__code') }}"
 							.replace("__code", code)
 				}
