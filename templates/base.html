@@ -3,8 +3,23 @@
 	<head>
 		<title>{{ gettext('Werewolves') }}</title>
 		<meta name="viewport" content="width=device-width" />
+		<style>
+			body {
+				transition-duration: 2s;
+			}
+
+			body.day {
+				background-color: lightblue;
+				color: black;
+			}
+
+			body.night {
+				background-color: #23212d;
+				color: white;
+			}
+		</style>
 	</head>
-	<body>
+	<body class="day">
 		{% block body %}
 		<h1 id="title">{{ gettext('Werewolves') }}</h1>
 		<noscript>{{ gettext('This game requires Javascript to be enabled') }}</noscript>

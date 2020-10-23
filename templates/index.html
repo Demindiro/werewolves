@@ -37,6 +37,11 @@
 		}
 
 
+		function setDay(isDay) {
+			document.body.className = isDay ? "day" : "night"
+		}
+
+
 		function requestGet(url, callback) {
 			let req = new XMLHttpRequest()
 			req.addEventListener("load", callback)
@@ -158,11 +163,13 @@
 					document.getElementById("title").textContent = "The wolves awaken..."
 					setVisible("game-players", true)
 					getActivityInfoWolves(info["state"])
+					setDay(false)
 					break
 				case "vote":
 					document.getElementById("title").textContent = "The village votes..."
 					setVisible("game-players", true)
 					getActivityInfoVote(info["state"])
+					setDay(true)
 					break
 				case "finished":
 					document.getElementById("title").textContent = "Game over!"
@@ -188,6 +195,8 @@
 
 		function getActivityInfoFinished(state) {
 			document.getElementById("game-players").textContent = "Winners: " + state["winners"]
+			console.log(state)
+			setDay(state["winners"] === "citizens")
 		}
 
 
