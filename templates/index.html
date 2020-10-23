@@ -241,7 +241,14 @@
 			}
 		}
 
-		(function() {
+
+		window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+			alert("Error occured: " + errorMsg + "\n\nURL: " + url + "\nLine: " + lineNumber);
+			return false;
+		}
+
+
+		!(function() {
 			if (getGameCode() === "") {
 				setVisible("index", true)
 				setVisible("game", false)
