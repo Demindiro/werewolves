@@ -2,8 +2,64 @@
 <html>
 	<head>
 		<title>{{ gettext('Werewolves') }}</title>
+		<meta name="viewport" content="width=device-width" />
+		<style>
+			@import url("https://static.salt-inc.org/fonts/comic-neue.css");
+
+			* {
+				text-align: center;
+				font-family: Comic Neue;
+				width: 100%;
+			}
+
+			html, body {
+				height: 100%;
+			}
+
+			html {
+				display: table;
+				margin: auto;
+			}
+
+			body {
+				transition-duration: 2s;
+				display: table-cell;
+				vertical-align: middle;
+				max-width: 500px;
+			}
+
+			input {
+				display: block;
+				margin: auto;
+				border: 1px solid #ccc;
+				border-radius: 12px;
+				padding: 4px 16px;
+				margin-top: 2px;
+				width: 100%;
+				box-sizing: border-box;
+				max-width: 200px;
+			}
+
+			input[type=text] {
+				background: white;
+			}
+
+			input[type=submit], input[type=button] {
+				background: #eee;
+			}
+
+			body.day {
+				background-color: lightblue;
+				color: black;
+			}
+
+			body.night {
+				background-color: #23212d;
+				color: white;
+			}
+		</style>
 	</head>
-	<body>
+	<body class="day">
 		{% block body %}
 		<h1 id="title">{{ gettext('Werewolves') }}</h1>
 		<noscript>{{ gettext('This game requires Javascript to be enabled') }}</noscript>

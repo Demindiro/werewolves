@@ -3,19 +3,27 @@
 	{{ super() }}
 	<p id="error" style="display:none"></p>
 	<div id="index" style="display:none">
-		<input class="code" type="text" placeholder="{{ gettext('Code') }}" />
-		<input type="button" onclick="showGame()" value="{{ gettext('View game') }}" />
+		<form onsubmit="showGame(); return false">
+			<input class="code" type="text" placeholder="{{ gettext('Code') }}" />
+			<input type="submit" value="{{ gettext('View game') }}" />
+		</form>
 		<br />
-		<input class="name" type="text" placeholder="{{ gettext('Username') }}" />
-		<input type="button" onclick="createGame()" value="{{ gettext('Create game') }}" />
+		<form onsubmit="createGame(); return false">
+			<input class="name" type="text" placeholder="{{ gettext('Username') }}" />
+			<input type="submit" value="{{ gettext('Create game') }}" />
+		</form>
 	</div>
 	<div id="game" style="display:none">
 		<h2 class="code"></h2>
 		<p id="game-players"></p>
-		<input id="game-start" type="button" onclick="startGame()" value="{{ gettext('Start game') }}" />
+		<form onsubmit="startGame(); return false">
+			<input id="game-start" type="submit" value="{{ gettext('Start game') }}" />
+		</form>
 		<br />
-		<input id="game-name" type="text" placeholder="{{ gettext('Username') }}" />
-		<input id="game-join" type="button" onclick="joinGame()" value="{{ gettext('Join') }}" />
+		<form id="game-join" onsubmit="joinGame(); return false">
+			<input id="game-name" type="text" placeholder="{{ gettext('Username') }}" />
+			<input type="submit" value="{{ gettext('Join') }}" />
+		</form>
 	</div>
 	<script>
 		function showError(text) {
@@ -34,6 +42,11 @@
 
 		function setVisible(id, visible) {
 			document.getElementById(id).style["display"] = visible ? "block" : "none"
+		}
+
+
+		function setDay(isDay) {
+			document.body.className = isDay ? "day" : "night"
 		}
 
 
@@ -72,30 +85,25 @@
 					return
 				}
 			}
-			request("get", "{{ url_for('api.get_game_info', code='__code') }}"
-					.replace("__code", code), showRequestHandler(code))
+			requestGet("{{ url_for('api.get_game_info', code='__code') }}"
+					.replace("__code", code), function (e) {
+				if (e.target.status === 200) {
+					window.location.href = "{{ url_for('index', code='__code') }}"
+							.replace("__code", code)
+				}
+			})
 		}
 
 
 		function createGame() {
 			let data = { name: getField("index", "name").value }
 			requestPost("{{ url_for('api.create_game') }}", data, function(e) {
-				let code = JSON.parse(e.target.response)["code"]
-				history.pushState(null, "", "/" + code + "/")
-				setVisible("index", false)
-				setVisible("game", true)
-			})
-		}
-
-
-		function showRequestHandler(code) {
-			return function(e) {
-				if (this.status > 0) {
-
-				} else {
-					showError("Failed to show game")
+				if (e.target.status === 201) {
+					let code = JSON.parse(e.target.response)["code"]
+					window.location.href = "{{ url_for('index', code='__code') }}"
+							.replace("__code", code)
 				}
-			}
+			})
 		}
 
 
@@ -135,7 +143,7 @@
 			let players = info["players"] || []
 			setVisible("game-players", false)
 			setVisible("game-start", false)
-			if (info["players"].indexOf(info["name"]) >= 0) {
+			if (info["players"].indexOf(info["name"]) >= 0 || activity != "waiting") {
 				setVisible("game-name", false)
 				setVisible("game-join", false)
 			} else {
@@ -148,26 +156,28 @@
 					document.getElementById("title").textContent = "Waiting for players"
 					setVisible("game-players", true)
 					setVisible("game-start", true)
-					let text = ""
-					for (let i = 0; i < players.length; i++) {
-						text += players[i] + ", "
+					let text = players.length > 0 ? players[0] : ""
+					for (let i = 1; i < players.length; i++) {
+						text += ", " + players[i]
 					}
 					document.getElementById("game-players").textContent = text
 					break
 				case "wolves":
 					document.getElementById("title").textContent = "The wolves awaken..."
 					setVisible("game-players", true)
-					getActivityInfoWolves(info["state"])
+					getActivityInfoWolves(info["state"] || [])
+					setDay(false)
 					break
 				case "vote":
 					document.getElementById("title").textContent = "The village votes..."
 					setVisible("game-players", true)
-					getActivityInfoVote(info["state"])
+					getActivityInfoVote(info["state"] || [])
+					setDay(true)
 					break
 				case "finished":
 					document.getElementById("title").textContent = "Game over!"
 					setVisible("game-players", true)
-					getActivityInfoFinished(info["state"])
+					getActivityInfoFinished(info["state"] || [])
 					break
 				default:
 					document.getElementById("title").textContent = "Unknown activity: " + activity
@@ -177,17 +187,19 @@
 
 
 		function getActivityInfoWolves(state) {
-			createVoteButtons(state["options"], "wolves", state["vote_count"], state["vote"])
+			createVoteButtons(state["options"] || [], "wolves", state["vote_count"], state["vote"])
 		}
 
 
 		function getActivityInfoVote(state) {
-			createVoteButtons(state["options"], "vote", state["vote_count"], state["vote"])
+			createVoteButtons(state["options"] || [], "vote", state["vote_count"], state["vote"])
 		}
 
 
 		function getActivityInfoFinished(state) {
 			document.getElementById("game-players").textContent = "Winners: " + state["winners"]
+			console.log(state)
+			setDay(state["winners"] === "citizens")
 		}
 
 
@@ -230,7 +242,14 @@
 			}
 		}
 
-		(function() {
+
+		window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+			alert("Error occured: " + errorMsg + "\n\nURL: " + url + "\nLine: " + lineNumber);
+			return false;
+		}
+
+
+		!(function() {
 			if (getGameCode() === "") {
 				setVisible("index", true)
 				setVisible("game", false)
